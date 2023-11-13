@@ -1,0 +1,7 @@
+import numpy as np
+
+# Constants
+g = 9.81
+total_wing_span = 48.82  # [Meters]
+max_tip_displacement = 15 / 100 * total_wing_span  # Maximum tip deflection [Meters]
+max_tip_rotation = 10  # Maximum tip rotation [Degrees]
