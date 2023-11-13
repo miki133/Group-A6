@@ -1,5 +1,8 @@
 import numpy as np
 import os
+import scipy as sp
+from scipy import interpolate
+import matplotlib.pyplot as plt
 
 
 class Aluminum:
@@ -11,14 +14,13 @@ class Aluminum:
         self.youngs_modulus = youngs_modulus  # Pascal
         self.poisson_ratio = poisson_ratio  # no unit
         self.shear_modulus = shear_modulus  # Pascal
-        self.shear_strength = shear_strength
-
+        self.shear_strength = shear_strength  # Pascal
 
     def display_properties(self):
         print(f"Material: {self.name}")
         print(f"Density: {self.density} kg/m^3")
-        print(f"Yield Stress: {self.yield_stress} °C")
-        print(f"Ultimate Stress: {self.ultimate_stress} W/(m*K)")
+        print(f"Yield Stress: {self.yield_stress} Pa")
+        print(f"Ultimate Stress: {self.ultimate_stress} Pa")
         print(f"Young's Modulus: {self.youngs_modulus} Pa")
         print(f"Poisson's Ratio: {self.poisson_ratio}")
         print(f"Shear Modulus: {self.shear_modulus} Pa")
@@ -31,9 +33,24 @@ g = 9.81  # [m/s^2]
 total_wing_span = 48.82  # [Meters]
 max_tip_displacement = 15 / 100 * total_wing_span  # Maximum tip deflection [Meters]
 max_tip_rotation = 10  # Maximum tip rotation [Degrees]
+half_wing_span = total_wing_span / 2
+
+# Empty Lists of data-points
+y_list_0deg = []
+chord_list_0deg = []
+induced_angle_list_0deg = []
+lift_coefficient_list_0deg = []
+induced_drag_coefficient_list_0deg = []
+pitching_moment_quarterchord_list_0deg = []
+y_list_10deg = []
+chord_list_10deg = []
+induced_angle_list_10deg = []
+lift_coefficient_list_10deg = []
+induced_drag_coefficient_list_10deg = []
+pitching_moment_quarterchord_list_10deg = []
 
 # XFLR5 Data
-
+# Open The Text File
 script_directory = os.path.dirname(os.path.abspath(__file__))
 file_path_0deg = os.path.join(script_directory, '0 deg wing A6.txt')
 with open(file_path_0deg, 'r') as file:
@@ -41,10 +58,60 @@ with open(file_path_0deg, 'r') as file:
 file_path_10deg = os.path.join(script_directory, '10 deg wing A6.txt')
 with open(file_path_10deg, 'r') as file:
     lines_10deg = file.readlines()
+# Append the values to the Lists
+start_line = 21
+for i in range(19):
+    line = lines_0deg[start_line + i + 19].split('   ')
+    y_list_0deg.append(line[1])
+    chord_list_0deg.append(line[2])
+    induced_angle_list_0deg.append(line[3])
+    lift_coefficient_list_0deg.append(line[4])
+    induced_drag_coefficient_list_0deg.append(line[6])
+    pitching_moment_quarterchord_list_0deg.append(line[8])
 
-# Now 'lines' is a list where each element is a line from the file
-for line in lines_0deg:
-    print(line.strip())
-for line in lines_10deg:
-    print(line.strip())
+    line = lines_10deg[start_line + i + 19].split('   ')
+    y_list_10deg.append(line[1])
+    chord_list_10deg.append(line[2])
+    induced_angle_list_10deg.append(line[3])
+    lift_coefficient_list_10deg.append(line[4])
+    induced_drag_coefficient_list_10deg.append(line[6])
+    pitching_moment_quarterchord_list_10deg.append(line[8])
 
+# Interpolate the data to get functions of distance from fuselage, convert to numpy arrays before doing so
+y_list_0deg = np.array(y_list_0deg, dtype=float)
+y_list_10deg = np.array(y_list_10deg, dtype=float)
+chord_list_0deg = np.array(chord_list_0deg, dtype=float)
+chord_list_10deg = np.array(chord_list_10deg, dtype=float)
+induced_angle_list_0deg = np.array(induced_angle_list_0deg, dtype=float)
+induced_angle_list_10deg = np.array(induced_angle_list_10deg, dtype=float)
+lift_coefficient_list_0deg = np.array(lift_coefficient_list_0deg, dtype=float)
+lift_coefficient_list_10deg = np.array(lift_coefficient_list_10deg, dtype=float)
+induced_drag_coefficient_list_0deg = np.array(induced_drag_coefficient_list_0deg, dtype=float)
+induced_drag_coefficient_list_10deg = np.array(induced_drag_coefficient_list_10deg, dtype=float)
+pitching_moment_quarterchord_list_0deg = np.array(pitching_moment_quarterchord_list_0deg, dtype=float)
+pitching_moment_quarterchord_list_10deg = np.array(pitching_moment_quarterchord_list_10deg, dtype=float)
+
+
+chord_function_0deg = sp.interpolate.interp1d(y_list_0deg, chord_list_0deg, kind='cubic', fill_value="extrapolate")
+chord_function_10deg = sp.interpolate.interp1d(y_list_10deg, chord_list_10deg, kind='cubic', fill_value="extrapolate")
+CL_function_0deg = sp.interpolate.interp1d(y_list_0deg, lift_coefficient_list_0deg, kind='cubic', fill_value="extrapolate")
+CL_function_10deg = sp.interpolate.interp1d(y_list_10deg, lift_coefficient_list_10deg, kind='cubic', fill_value="extrapolate")
+CD_function_0deg = sp.interpolate.interp1d(y_list_0deg, induced_drag_coefficient_list_0deg, kind='cubic', fill_value="extrapolate")
+CD_function_10deg = sp.interpolate.interp1d(y_list_10deg, induced_drag_coefficient_list_10deg, kind='cubic', fill_value="extrapolate")
+CM_function_0deg = sp.interpolate.interp1d(y_list_0deg, pitching_moment_quarterchord_list_0deg, kind='cubic', fill_value="extrapolate")
+CM_function_10deg = sp.interpolate.interp1d(y_list_10deg, pitching_moment_quarterchord_list_10deg, kind='cubic', fill_value="extrapolate")
+induced_AOA_function_0deg = sp.interpolate.interp1d(y_list_0deg, induced_angle_list_0deg, kind='cubic', fill_value="extrapolate")
+induced_AOA_function_10deg = sp.interpolate.interp1d(y_list_10deg, induced_angle_list_10deg, kind='cubic', fill_value="extrapolate")
+
+# Generate points for plotting
+x_plot = np.linspace(0, max(y_list_0deg), 1000)
+y_plot = chord_function_0deg(x_plot)
+
+# Plot the original data points and the interpolated function
+plt.plot(y_list_0deg, chord_list_0deg, 'o', label='Original Data')
+plt.plot(x_plot, y_plot, label='Interpolated Function')
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.title('Interpolated Function Plot')
+plt.legend()
+plt.show()
