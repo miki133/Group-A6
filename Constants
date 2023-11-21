@@ -33,9 +33,23 @@ g = 9.81  # [m/s^2]
 total_wing_span = 48.82  # [Meters]
 max_tip_displacement = 15 / 100 * total_wing_span  # Maximum tip deflection [Meters]
 max_tip_rotation = 10  # Maximum tip rotation [Degrees]
-half_wing_span = total_wing_span / 2
+half_wing_span = total_wing_span / 2 # Span of one wing [Meters]
+MTOW = 1670876.6  # Maximum Weight in Newtons
+load_factor = 2.5
+Wing_Load = load_factor * MTOW
+max_load_velocity = 193  # m/s
+max_load_density = 1.225  # kg/m^3
+CL0_0deg = 0.355876
+CL0_10deg = 1.141277
+CD0_0deg = 0.004713
+CD0_10deg = 0.046930
+CM0_0deg = -0.486076
+CM0_10deg = -1.38817
 
-# Empty Lists of data-points
+Cl_des = 0.6645720488089126
+Cd_des = (0.647562 * CD0_10deg + CD0_0deg) / (1 + 0.647562)
+Cm_des = (0.647562 * CM0_10deg + CM0_0deg) / (1 + 0.647562)
+# Making Empty Lists of data-points
 y_list_0deg = []
 chord_list_0deg = []
 induced_angle_list_0deg = []
@@ -49,7 +63,7 @@ lift_coefficient_list_10deg = []
 induced_drag_coefficient_list_10deg = []
 pitching_moment_quarterchord_list_10deg = []
 
-# XFLR5 Data
+# ------------ XFLR5 Data -----------
 # Open The Text File
 script_directory = os.path.dirname(os.path.abspath(__file__))
 file_path_0deg = os.path.join(script_directory, '0 deg wing A6.txt')
@@ -76,7 +90,6 @@ for i in range(19):
     lift_coefficient_list_10deg.append(line[4])
     induced_drag_coefficient_list_10deg.append(line[6])
     pitching_moment_quarterchord_list_10deg.append(line[8])
-
 # Interpolate the data to get functions of distance from fuselage, convert to numpy arrays before doing so
 y_list_0deg = np.array(y_list_0deg, dtype=float)
 y_list_10deg = np.array(y_list_10deg, dtype=float)
@@ -91,7 +104,6 @@ induced_drag_coefficient_list_10deg = np.array(induced_drag_coefficient_list_10d
 pitching_moment_quarterchord_list_0deg = np.array(pitching_moment_quarterchord_list_0deg, dtype=float)
 pitching_moment_quarterchord_list_10deg = np.array(pitching_moment_quarterchord_list_10deg, dtype=float)
 
-
 chord_function_0deg = sp.interpolate.interp1d(y_list_0deg, chord_list_0deg, kind='cubic', fill_value="extrapolate")
 chord_function_10deg = sp.interpolate.interp1d(y_list_10deg, chord_list_10deg, kind='cubic', fill_value="extrapolate")
 CL_function_0deg = sp.interpolate.interp1d(y_list_0deg, lift_coefficient_list_0deg, kind='cubic', fill_value="extrapolate")
@@ -103,24 +115,41 @@ CM_function_10deg = sp.interpolate.interp1d(y_list_10deg, pitching_moment_quarte
 induced_AOA_function_0deg = sp.interpolate.interp1d(y_list_0deg, induced_angle_list_0deg, kind='cubic', fill_value="extrapolate")
 induced_AOA_function_10deg = sp.interpolate.interp1d(y_list_10deg, induced_angle_list_10deg, kind='cubic', fill_value="extrapolate")
 
+# Finding the Lift, Drag and Moment Distributions in terms of Force per unit span
+"""
+x_plot = np.linspace(0, max(y_list_0deg), 1000)
+y_plot = CL_function_0deg(x_plot) * chord_function_0deg(x_plot) * 0.5 * max_load_velocity ** 2 * max_load_density
+
+plt.plot(x_plot, y_plot, label='Lift per Unit Span Distribution')
+plt.xlabel('Distance from Fuselage in meters')
+plt.ylabel('Lift per unit span')
+plt.title('Lift Plot')
+plt.legend()
+plt.show()
+
+"""
+# Creating the Lift, Drag, and Moment functions and integrating them
 
 
 def lift_force_function(z):
-    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (Cl_des - CL0_0deg) / (CL0_10deg - Cl_des) * (CL_function_10deg(z) - CL_function_0deg(z))
 
 
 def drag_force_function(z):
-    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CD_function_0deg(z) + (Cd_des - CD0_0deg) / (CD0_10deg - Cd_des) * (CD_function_10deg(z) - CD_function_0deg(z))
 
 
 def moment_function(z):
-    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) ** 2 * CM_function_0deg(z) + (Cm_des - CM0_0deg) / (CM0_10deg - Cm_des) * (CM_function_10deg(z) - CM_function_0deg(z))
 
 
-Total_Lift_Estimate, Lift_Error = sp.integrate.quad(lift_force_function, 0, max(y_list_10deg))
-#Total_Drag_Estimate, Drag_Error = sp.integrate.quad(drag_force_function, 0, max(y_list_10deg))
-Total_Moment_Estimate, Moment_Error = sp.integrate.quad(moment_function, 0, max(y_list_10deg))
+Total_Lift_Estimate, Lift_Error = sp.integrate.quad(lift_force_function, 0, half_wing_span)
+Total_Drag_Estimate, Drag_Error = sp.integrate.quad(drag_force_function, 0, half_wing_span)
+Total_Moment_Estimate, Moment_Error = sp.integrate.quad(moment_function, 0, half_wing_span)
 
 
-def angle_of_attack(CL):
-    return np.degrees(np.arcsin(0.17364817766 * (CL - CL0_0deg) / (CL0_10deg - CL)))
+def angle_of_attack(cl):
+    return np.degrees(np.arcsin(np.sin(np.radians(10)) * (cl - CL0_0deg) / (CL0_10deg - cl)))
+
+# Print the final characteristics:
+# print(f'The angle of attack is {angle_of_attack(Cl_des)} at a lift coefficient of {Cl_des}.')
