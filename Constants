@@ -103,15 +103,24 @@ CM_function_10deg = sp.interpolate.interp1d(y_list_10deg, pitching_moment_quarte
 induced_AOA_function_0deg = sp.interpolate.interp1d(y_list_0deg, induced_angle_list_0deg, kind='cubic', fill_value="extrapolate")
 induced_AOA_function_10deg = sp.interpolate.interp1d(y_list_10deg, induced_angle_list_10deg, kind='cubic', fill_value="extrapolate")
 
-# Generate points for plotting
-x_plot = np.linspace(0, max(y_list_0deg), 1000)
-y_plot = chord_function_0deg(x_plot)
 
-# Plot the original data points and the interpolated function
-plt.plot(y_list_0deg, chord_list_0deg, 'o', label='Original Data')
-plt.plot(x_plot, y_plot, label='Interpolated Function')
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-plt.title('Interpolated Function Plot')
-plt.legend()
-plt.show()
+
+def lift_force_function(z):
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+
+
+def drag_force_function(z):
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+
+
+def moment_function(z):
+    return 0.5 * max_load_velocity ** 2 * max_load_density * chord_function_0deg(z) * CL_function_0deg(z) + (CLD - CL0_0deg) / (CL0_10deg - CLD) * (CL_function_10deg(z) - CL_function_0deg(z))
+
+
+Total_Lift_Estimate, Lift_Error = sp.integrate.quad(lift_force_function, 0, max(y_list_10deg))
+#Total_Drag_Estimate, Drag_Error = sp.integrate.quad(drag_force_function, 0, max(y_list_10deg))
+Total_Moment_Estimate, Moment_Error = sp.integrate.quad(moment_function, 0, max(y_list_10deg))
+
+
+def angle_of_attack(CL):
+    return np.degrees(np.arcsin(0.17364817766 * (CL - CL0_0deg) / (CL0_10deg - CL)))
