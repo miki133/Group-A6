@@ -5,13 +5,31 @@ from InternalForcesAE2111 import momentfuncyz, torquefunc
 import matplotlib.pyplot as plt
 b = 48.82
 span = 48.82
-spanwisesplit = 0.5#Ratio of span
-#Change the numbers here
-a_ratio = 0.0841
-p_ratio = 0.127
-d_ratio = 0.01
-t_ratio = 1
-k_ratio = 0.5
+q_design_op = int(input("Select design 1, 2 or 3"))
+if q_design_op == 1 :
+    a_ratio = 0.0841
+    p_ratio = 0.127
+    d_ratio = 0.01
+    t_ratio = 1
+    k_ratio = 0.5
+    spanwisesplit = 0.5#Ratio of span
+    #Change the numbers here
+elif q_design_op == 2:
+    a_ratio = 0.0841
+    p_ratio = 0.0841
+    d_ratio = 0
+    t_ratio = 1.2
+    k_ratio = 0
+    spanwisesplit = 0#Ratio of span
+    #Change the numbers here
+elif q_design_op == 3:
+    a_ratio = 0.0841
+    p_ratio = 0.127
+    d_ratio = 0.01
+    t_ratio = 1.4
+    k_ratio = 0.5
+    spanwisesplit = 0.5#Ratio of span
+    #Change the numbers here
 
 def Icalculation(z):
     r = 0.5 * (8.487 - 0.233 * z)
