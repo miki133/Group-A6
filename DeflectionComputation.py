@@ -33,9 +33,10 @@ elif q_design_op == 3:
 
 def Icalculation(z):
     r = 0.5 * (8.487 - 0.233 * z)
-    a = a_ratio * r
-    p = p_ratio * r
-    d = d_ratio * r
+    c = (8.487 - 0.233 * z)
+    a = a_ratio * c
+    p = p_ratio * c
+    d = d_ratio * c
     t = t_ratio * (0.003125 * r - 0.00235)
     #print(t)
     k = k_ratio * r
@@ -141,9 +142,10 @@ def Icalculation(z):
 
 def Jcalculation(z):
     r = 0.5 * (8.487 - 0.233 * z)
-    a = a_ratio * r
-    p = p_ratio * r
-    d = d_ratio * r
+    c = (8.487 - 0.233 * z)
+    a = a_ratio * c
+    p = p_ratio * c
+    d = d_ratio * c
     t = t_ratio*(0.003125 * r - 0.00235)
     k = k_ratio * r
     G = 26e9
