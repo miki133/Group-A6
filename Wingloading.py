@@ -203,7 +203,7 @@ def alpha_func(CL_des):
 #Critical case values (to lazy to automate this)
 
 # Which n are we using, change here!!!!!!!!!!!!
-n = 2.5
+n = -1
 
 W = Weights[2]
 rho = Densities[0]
@@ -223,10 +223,10 @@ CL_des = n*W/(0.5 * rho * V**2 * S)
 
 alpha = np.degrees(alpha_func((CL_des)))
 
-print(alpha)
-
-print(CL_des)
-print(np.degrees(alpha_func(CL_des)))
+# print(alpha)
+#
+# print(CL_des)
+# print(np.degrees(alpha_func(CL_des)))
 
 
 
