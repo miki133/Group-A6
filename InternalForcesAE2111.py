@@ -9,7 +9,7 @@ P_eng = n*135787
 T = 431000
 M_eng = 0
 # AoA = np.radians(12.044974098211046)
-AoA = alpha
+AoA = np.radians(alpha)
 c4angle = np.radians(20.05)
 eng_loc = 8.91
 eng_loc_vert = 5
@@ -128,6 +128,7 @@ for i in range(len(z_values)):
     momentyz_values = np.append(momentyz_values, momentfuncyz(z_values[i]))
     momentxz_values = np.append(momentxz_values, momentfuncxz(z_values[i]))
     momentxy_values = np.append(momentxy_values, torquefunc(z_values[i]))
+
 
 
 fig, axs = plt.subplots(2, 3, figsize=(13, 5), layout='constrained')
