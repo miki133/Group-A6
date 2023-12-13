@@ -44,7 +44,7 @@ def enclosed_area(z):
 
 def cross_sec_area(z):
     r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2 = geometry(z)
-    A_str = 4*10**-3
+    A_str = 2*10**-3
     if q_design_op == 1:
         N = 8
     elif q_design_op == 2:
@@ -70,59 +70,25 @@ def tau_ave(z):
 
 def tau_cr(z):
     #beam 1 is LE, beam 2 is TE, beam 3 is middle
-    # r, b_1, b_2, b_3, k, d, e, t, theta, beta = geometry(z)
-    # print("taucr", r, b_1, b_2, b_3, k, d, e, t, theta, beta)
-
-    t = t_ratio * (0.003125 * r(z) - 0.00235)
-
-    b_1 = p_ratio*r(z)          #height LE beam at point z
-    b_2 = a_ratio*r(z)          #height TE beam at point z
-
-    d = r(z) * d_ratio          #"gap" above TE beam at point z
-    e = b_1 - d - b_2           #"gap" below TE beam at point z
-    k = k_ratio*r(z)            #Distance in x direction of centre beam
-
-    theta = np.arctan(d / r(z))
-    beta = np.arctan(e / r(z))
-
-    b_3 = b_2 + (r(z) - k) * np.tan(beta) + (r(z) - k) * np.tan(theta)
+    r, b_1, b_2, b_3, k, d, e, t, theta, beta = geometry(z)[0:10]
+    t = 2*t
 
     k_s = 9
 
-
-    if q_design_op == 2 or z >b/4:
-        on_off_factor = 0
-    else:
-        on_off_factor = 1
-
     tau_cr_1 = np.pi**2 *k_s * E/(12*(1-v**2)) *(t/b_1)**2
     tau_cr_2 = np.pi**2 *k_s * E/(12*(1-v**2)) *(t/b_2)**2
-    tau_cr_3 = (np.pi**2 *k_s * E/(12*(1-v**2)) *(t/b_3)**2)*on_off_factor
+    if b_3 == 0:
+        tau_cr_3 = 0
+    else:
+        tau_cr_3 = (np.pi**2 *k_s * E/(12*(1-v**2)) *(t/b_3)**2)#*on_off_factor
     return tau_cr_1, tau_cr_2, tau_cr_3
 
 def sigma_cr(z):
     #beam 1 is LE, beam 2 is TE, beam 3 is middle
-    # r, b_1, b_2, b_3, k, d, e, t, theta, beta = geometry(z)
-    # print("taucr", r, b_1, b_2, b_3, k, d, e, t, theta, beta)
+    r, b_1, b_2, b_3, k, d, e, t, theta, beta = geometry(z)[0:10]
 
-    t = t_ratio * (0.003125 * r(z) - 0.00235)
-
-    b_1 = p_ratio*r(z)          #height LE beam at point z
-    b_2 = a_ratio*r(z)          #height TE beam at point z
-
-    d = r(z) * d_ratio          #"gap" above TE beam at point z
-    e = b_1 - d - b_2           #"gap" below TE beam at point z
-    k = k_ratio*r(z)            #Distance in x direction of centre beam
-
-    theta = np.arctan(d / r(z))
-    beta = np.arctan(e / r(z))
-
-    b_3 = b_2 + (r(z) - k) * np.tan(beta) + (r(z) - k) * np.tan(theta)
-
-    h_1 = np.sqrt(d ** 2 + r(z) ** 2)
-    h_2 = np.sqrt(e ** 2 + r(z) ** 2)
-    print(b_1, b_2, h_2, h_1)
-
+    h_1 = np.sqrt(d ** 2 + r ** 2)
+    h_2 = np.sqrt(e ** 2 + r ** 2)
     k_c = 4
 
     sigma_cr_1 = np.pi**2 *k_c * E/(12*(1-v**2)) *(t/h_1)**2
