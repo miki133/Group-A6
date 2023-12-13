@@ -12,6 +12,7 @@ if q_design_op == 1 :
     t_ratio = 1
     k_ratio = 0.5
     spanwisesplit = 0.5#Ratio of span
+    nr_of_stringers = 8
     #Change the numbers here
 elif q_design_op == 2:
     a_ratio = 0.0841
@@ -20,6 +21,7 @@ elif q_design_op == 2:
     t_ratio = 1.2
     k_ratio = 0
     spanwisesplit = 0#Ratio of span
+    nr_of_stringers = 20
     #Change the numbers here
 elif q_design_op == 3:
     a_ratio = 0.0841
@@ -28,6 +30,7 @@ elif q_design_op == 3:
     t_ratio = 1.4
     k_ratio = 0.5
     spanwisesplit = 0.5#Ratio of span
+    nr_of_stringers = 4
     #Change the numbers here
 
 
@@ -103,7 +106,7 @@ def Icalculation(z):
     #if Multicell == False:
     if z > spanwisesplit*span/2:
         A = 1/2 * (a + p) * r
-        Divider = 15 + 1 # half the actual nr of stringers
+        Divider = nr_of_stringers / 2 + 1 # half the actual nr of stringers
         # stringer calculations
         I_xx_Stringer = 0
         I_yy_Stringer = 0
@@ -156,8 +159,8 @@ def Icalculation(z):
 
     #if Multicell == True:
     else:
-        DividerA1 = 7 + 1
-        DividerA2 = 8 + 1
+        DividerA1 = np.ceil(nr_of_stringers / 2) + 1
+        DividerA2 = np.floor(nr_of_stringers / 2) + 1
         # stringer calculations
         I_xx_Stringer = 0
         I_yy_Stringer = 0
@@ -354,7 +357,7 @@ for i in range(len(z_values)):
 print(twist_values)
 fig, axs = plt.subplots(1, 2, figsize=(10, 5), layout='constrained')
 
-
+"""
 #axs.flat[0].plot(z_values, angle_values)
 #axs.flat[0].set_title('Angle')
 
@@ -375,3 +378,118 @@ axs.flat[1].set_title('Torsional Stiffness')
 axs.flat[1].set(ylabel=r'Torsional Stiffness [$m^{4}$]', xlabel='Spanwise Location [m]')"""
 
 plt.show()
+"""
+
+
+# Below this are computations for tensile stress, some can also be used for compression as well
+# Analysis of points bottom left: 1, bottom right: 2, top left: 3, top right: 4
+#print(Icalculation((10))[4])
+def Stress_Analysis(z, point):
+    return (((momentfuncyz(z) * Icalculation(z)[2] - momentfuncxz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][1] + (momentfuncxz(z) * Icalculation(z)[1] - momentfuncyz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][0]) / (Icalculation(z)[1] * Icalculation(z)[2] - Icalculation(z)[3] ** 2))
+
+Point1Stress = np.empty((0, 1))
+for i in range(len(z_values)):
+    Point1Stress = np.append(Point1Stress, Stress_Analysis(z_values[i], 0))
+Point2Stress = np.empty((0, 1))
+for i in range(len(z_values)):
+    Point2Stress = np.append(Point2Stress, Stress_Analysis(z_values[i], 1))
+Point3Stress = np.empty((0, 1))
+for i in range(len(z_values)):
+    Point3Stress = np.append(Point3Stress, Stress_Analysis(z_values[i], 2))
+Point4Stress = np.empty((0, 1))
+for i in range(len(z_values)):
+    Point4Stress = np.append(Point4Stress, Stress_Analysis(z_values[i], 3))
+
+
+
+def principal_axis(z):
+    return np.degrees(-np.arctan((momentfuncxz(z) * Icalculation(z)[1] - momentfuncyz(z) * Icalculation(z)[3] ) / (momentfuncyz(z) * Icalculation(z)[2] - momentfuncxz(z) * Icalculation(z)[3])))
+
+principal_axis_values = np.empty((0, 1))
+
+for i in range(len(z_values)):
+    principal_axis_values = np.append(principal_axis_values, principal_axis(z_values[i]))
+
+def Moment_Angle(z):
+    return np.degrees(np.arctan(momentfuncxz(z)/momentfuncyz(z)))
+
+Moment_Angle_values = np.empty((0, 1))
+
+for i in range(len(z_values)):
+    Moment_Angle_values = np.append(Moment_Angle_values, Moment_Angle(z_values[i]))
+
+# Moment_valuesX = np.empty((0, 1))
+# Moment_valuesY = np.empty((0, 1))
+#
+# for i in range(len(z_values)):
+#     Moment_valuesX = np.append(Moment_valuesX, momentfuncyz(z_values[i]))
+#     Moment_valuesY = np.append(Moment_valuesY, momentfuncxz(z_values[i]))
+
+#Axis
+# fig, axs = plt.subplots(2)
+# axs[0].plot(z_values, principal_axis_values)
+# axs[1].plot(z_values, Moment_Angle_values)
+# axs[2].plot(z_values, Moment_valuesX)
+# axs[2].plot(z_values, Moment_valuesY)
+# print(max(max(Point1Stress), max(Point2Stress)), min(min(Point3Stress), min(Point4Stress)))
+#print(max(Point1Stress), max(Point2Stress), min(Point3Stress), min(Point4Stress))
+
+positive_load = [251231315.16698426, 54296088.62229689, -221555531.49262363, -258785594.87434104]
+negative_load = [-84791413.52927507, -36782737.48649467, 96954942.68921526, 85982636.67852694]
+#Stress at points
+"""
+fig, axs = plt.subplots(2)
+axs[1].plot(z_values, Point1Stress, label = "Left")
+axs[1].plot(z_values, Point2Stress, label = "Right")
+axs[1].set_title('Bottom Points')
+plt.legend()
+axs[0].plot(z_values, Point3Stress, label = "Left")
+axs[0].plot(z_values, Point4Stress, label = "Right")
+axs[0].set_title('Top Points')
+plt.legend()
+plt.show()
+"""
+# Cyclic loading calculations
+stress_max_tension = 1
+A = 4.3378e-7
+m = 2.6183
+K1c = 29e6
+c_min = 1.27e-3
+positive_load = np.array(positive_load)
+negative_load = np.array(negative_load)
+delta_sigma = max(abs(positive_load - negative_load))
+c_crit = K1c ** 2 / np.pi / delta_sigma ** 2
+delta_sigma = delta_sigma/ 10e6
+c = c_min
+"""
+cycles = 0
+plotx = []
+ploty = []
+while c <= c_crit:
+    cycles += 1
+    delta_K = 1.1 * delta_sigma * np.sqrt(np.pi * c)
+    dcdN = A * delta_K ** m
+    c += dcdN / 10e3
+    plotx.append(cycles)
+    ploty.append(c)
+    if cycles % 100000 == 0:
+        print(cycles, c, c_crit)
+print(cycles)
+plt.plot(plotx, ploty)
+plt.show()
+"""
+Point1Stress = abs(Point1Stress)
+Point2Stress = abs(Point2Stress)
+Point3Stress = abs(Point3Stress)
+Point4Stress = abs(Point4Stress)
+
+margin_of_safety = []
+for z in range(len(z_values)):
+    margin = 310e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
+    if margin < 10:
+        margin_of_safety.append(margin)
+    else:
+        margin_of_safety.append(10)
+print(margin_of_safety[0])
+#plt.plot(z_values, margin_of_safety)
+#plt.show()
