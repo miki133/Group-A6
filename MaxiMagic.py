@@ -11,32 +11,11 @@ b = 48.82
 span = 48.82
 spanwisesplit = 0.5#Ratio of span
 #Change the numbers here
-q_design_op = 1
-if q_design_op == 1 :
-    a_ratio = 0.0841
-    p_ratio = 0.127
-    d_ratio = 0.01
-    t_ratio = 1
-    k_ratio = 0.5
-    spanwisesplit = 0.5#Ratio of span
-    #Change the numbers here
-elif q_design_op == 2:
-    a_ratio = 0.0841
-    p_ratio = 0.0841
-    d_ratio = 0
-    t_ratio = 1.2
-    k_ratio = 0
-    spanwisesplit = 0#Ratio of span
-    #Change the numbers here
-elif q_design_op == 3:
-    a_ratio = 0.0841
-    p_ratio = 0.127
-    d_ratio = 0.01
-    t_ratio = 1.4
-    k_ratio = 0.5
-    spanwisesplit = 0.5#Ratio of span
-    #Change the numbers here
-
+a_ratio = 0.0841
+p_ratio = 0.127
+d_ratio = 0.01
+t_ratio = 1
+k_ratio = 0.5
 
 def Icalculation(z):
     r = 0.5 * (8.487 - 0.233 * z)
@@ -54,7 +33,7 @@ def Icalculation(z):
     A_1 = a*r
     A_2 = 1/2*r*d
     A_3 = 1/2*r*e
-    A_stringer = 2*10**-3
+    A_stringer = 4*10**-3
     #print(t)
     #centroid A_1
     C_1_x = 1/2*r
@@ -381,7 +360,7 @@ plt.show()
 
 """
 # Analysis of points bottom left: 1, bottom right: 2, top left: 3, top right: 4
-print(Icalculation((10))[4])
+#print(Icalculation((10))[4])
 def Stress_Analysis(z, point):
     return (((momentfuncyz(z) * Icalculation(z)[2] - momentfuncxz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][1] + (momentfuncxz(z) * Icalculation(z)[1] - momentfuncyz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][0]) / (Icalculation(z)[1] * Icalculation(z)[2] - Icalculation(z)[3] ** 2))
 
@@ -429,17 +408,65 @@ for i in range(len(z_values)):
 # axs[1].plot(z_values, Moment_Angle_values)
 # axs[2].plot(z_values, Moment_valuesX)
 # axs[2].plot(z_values, Moment_valuesY)
-print(max(max(Point1Stress), max(Point2Stress)), min(min(Point3Stress), min(Point4Stress)))
+# print(max(max(Point1Stress), max(Point2Stress)), min(min(Point3Stress), min(Point4Stress)))
+#print(max(Point1Stress), max(Point2Stress), min(Point3Stress), min(Point4Stress))
 
+positive_load = [251231315.16698426, 54296088.62229689, -221555531.49262363, -258785594.87434104]
+negative_load = [-84791413.52927507, -36782737.48649467, 96954942.68921526, 85982636.67852694]
 #Stress at points
-# fig, axs = plt.subplots(2)
-# axs[1].plot(z_values, Point1Stress, label = "Left")
-# axs[1].plot(z_values, Point2Stress, label = "Right")
-# axs[1].set_title('Bottom Points')
-# plt.legend()
-# axs[0].plot(z_values, Point3Stress, label = "Left")
-# axs[0].plot(z_values, Point4Stress, label = "Right")
-# axs[0].set_title('Top Points')
-# plt.legend()
-# plt.show()
+"""
+fig, axs = plt.subplots(2)
+axs[1].plot(z_values, Point1Stress, label = "Left")
+axs[1].plot(z_values, Point2Stress, label = "Right")
+axs[1].set_title('Bottom Points')
+plt.legend()
+axs[0].plot(z_values, Point3Stress, label = "Left")
+axs[0].plot(z_values, Point4Stress, label = "Right")
+axs[0].set_title('Top Points')
+plt.legend()
+plt.show()
+"""
+# Cyclic loading calculations
+stress_max_tension = 1
+A = 4.3378e-7
+m = 2.6183
+K1c = 29e6
+c_min = 1.27e-3
+positive_load = np.array(positive_load)
+negative_load = np.array(negative_load)
+delta_sigma = max(abs(positive_load - negative_load))
+c_crit = K1c ** 2 / np.pi / delta_sigma ** 2
+delta_sigma = delta_sigma/ 10e6
+c = c_min
+cycles = 0
+plotx = []
+ploty = []
+"""
+while c <= c_crit:
+    cycles += 1
+    delta_K = 1.1 * delta_sigma * np.sqrt(np.pi * c)
+    dcdN = A * delta_K ** m
+    c += dcdN / 10e3
+    plotx.append(cycles)
+    ploty.append(c)
+    if cycles % 100000 == 0:
+        print(cycles, c, c_crit)
+print(cycles)
+plt.plot(plotx, ploty)
+plt.show()
+"""
+Point1Stress = abs(Point1Stress)
+Point2Stress = abs(Point2Stress)
+Point3Stress = abs(Point3Stress)
+Point4Stress = abs(Point4Stress)
 
+margin_of_safety = []
+for z in range(len(z_values)):
+    margin = 310e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
+    if margin < 10:
+        margin_of_safety.append(margin)
+    else:
+        margin_of_safety.append(10)
+print(margin_of_safety[0])
+plt.plot(z_values, margin_of_safety)
+plt.show()
