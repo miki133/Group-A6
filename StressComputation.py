@@ -195,3 +195,65 @@ axs.flat[3].plot(z_values, sigma_cr2_values, color='blue')
 # # axs.flat[5].axhline(0, color='black')
 
 plt.show()
+
+
+#stiffner calculations for colum buckling
+A_s = 3*10**-3
+L_s = np.sqrt(5*A_s)
+t_s = L_s/10 #for thin walled approximation to be true
+K = 1/4
+L = 24.41
+I_xx_stiffner = 19/48*L_s**3*t_s
+sigma_cr_bk = (K*np.pi**2*E*I_xx_stiffner)/(L**2*A_s)
+
+exceeds_limit2 = False
+
+for i in range(len(z_values)):
+    tau_ave2 = tau_ave2_values[i]
+    tau_cr2 = tau_cr2_values[i]
+    z_location = z_values[i]
+
+    if tau_ave2 > tau_cr2:
+        print(f"At z = {z_location}, tau_ave ({tau_ave}) exceeds tau_cr ({tau_cr})")
+        exceeds_limit2 = True
+
+if exceeds_limit2:
+    print("At least one pair of tau_ave2 exceeds tau_cr2")
+else:
+    print("No pair of tau_ave2 exceeds tau_cr2")
+    
+    
+exceeds_limit1 = False
+
+for i in range(len(z_values)):
+    tau_ave1 = tau_ave1_values[i]
+    tau_cr1 = tau_cr1_values[i]
+    z_location = z_values[i]
+
+    if tau_ave1 > tau_cr1:
+        print(f"At z = {z_location}, tau_ave1 ({tau_ave1}) exceeds tau_cr1 ({tau_cr1})")
+        exceeds_limit1 = True
+        break
+
+if exceeds_limit1:
+    print("Limit exceeded for tau_ave1 and tau_cr1")
+else:
+    print("No pair of tau_ave1 exceeds tau_cr1")
+
+exceeds_limit3 = False
+half_length = len(z_values) // 2  # Assuming len(z_values) is even
+
+for i in range(half_length):
+    tau_ave3 = tau_ave2_values[i]
+    tau_cr3 = tau_cr3_values[i]
+    z_location = z_values[i]
+
+    if tau_ave3 > tau_cr3:
+        print(f"At z = {z_location}, tau_ave3 ({tau_ave3}) exceeds tau_cr3 ({tau_cr3})")
+        exceeds_limit3 = True
+        break
+
+if exceeds_limit3:
+    print("Limit exceeded for tau_ave3 and tau_cr3 in the first half of the span")
+else:
+    print("No pair of tau_ave3 exceeds tau_cr3 in the first half of the span")
