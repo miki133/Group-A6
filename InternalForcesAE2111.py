@@ -129,8 +129,7 @@ for i in range(len(z_values)):
     momentxz_values = np.append(momentxz_values, momentfuncxz(z_values[i]))
     momentxy_values = np.append(momentxy_values, torquefunc(z_values[i]))
 
-
-
+"""
 fig, axs = plt.subplots(2, 3, figsize=(13, 5), layout='constrained')
 # axs[0][2].set_visible(False)
 
@@ -183,3 +182,4 @@ for ax in axs.flat:
     # ax.label_outer()
 
 plt.show()
+"""
