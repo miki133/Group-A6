@@ -46,8 +46,6 @@ for i in range(19):
     induced_drag_coefficient_list_10deg = np.append(induced_drag_coefficient_list_10deg, float(line[6]))
     pitching_moment_quarterchord_list_10deg = np.append(pitching_moment_quarterchord_list_10deg, float(line[8]))
 
-
-
 chord_function_0deg = sp.interpolate.interp1d(y_list_0deg, chord_list_0deg, kind='cubic', fill_value="extrapolate")
 chord_function_10deg = sp.interpolate.interp1d(y_list_10deg, chord_list_10deg, kind='cubic', fill_value="extrapolate")
 CL_function_0deg = sp.interpolate.interp1d(y_list_0deg, lift_coefficient_list_0deg, kind='cubic', fill_value="extrapolate")
@@ -92,7 +90,7 @@ def CL_des_func(z): # Cl per unit length
 #     return CD_function_0deg(z) + ((CL_des - CL0_0deg)/(CL0_10deg - CL0_0deg))**2 * (CD_function_10deg(z)-CD_function_0deg(z))
 
 def CD_des_func(z): # Cd per unit length using weird math I did
-    return CD_function_0deg(z) + ((CL_des ** 2 - CL0_0deg ** 2)/(CL0_10deg ** 2 - CL0_0deg ** 2)) * (CD_function_10deg(z)-CD_function_0deg(z))
+    return CD_function_0deg(z) + (2*CL_des)/(np.pi*A*e) * ((CL_des - CL0_0deg)/(CD0_10deg - CD0_0deg)) * (CD_function_10deg(z)-CD_function_0deg(z))
 
 
 # def CD_des_func(z): # Cd per unit length using drag polar
@@ -103,7 +101,7 @@ def CD_des_func(z): # Cd per unit length using weird math I did
 #CHECK!!! From rsearchgate "Lift coefficient change vs pitching moment coefficient"
 # dCL = -4dCM
 def CM_des_func(z):
-    return CM_function_0deg(z) + ((CL_des - CL0_0deg)/(CL0_10deg - CL0_0deg)) * (CM_function_10deg(z) - CM_function_0deg(z))
+    return CM_function_0deg(z) - 0.25 * ((CL_des - CL0_0deg)/(CM0_10deg - CM0_0deg)) * (CM_function_10deg(z) - CM_function_0deg(z))
 
 
 def Lift_func(z): # Lift per unit lenght (L')
@@ -215,7 +213,7 @@ if n == 2.5:
 if n == -1:
     V = 141.262626262
 
-CL_des = n * W / (0.5 * rho * V ** 2 * S)
+CL_des = n*W/(0.5 * rho * V**2 * S)
 
 # # V = Velocities1[0]
 # V = 141.26262626
@@ -225,10 +223,10 @@ CL_des = n * W / (0.5 * rho * V ** 2 * S)
 
 alpha = np.degrees(alpha_func((CL_des)))
 
-print(alpha)
-
-print(CL_des)
-print(np.degrees(alpha_func(CL_des)))
+# print(alpha)
+#
+# print(CL_des)
+# print(np.degrees(alpha_func(CL_des)))
 
 
 
