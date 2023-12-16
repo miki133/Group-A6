@@ -1,18 +1,19 @@
 import numpy as np
 import scipy
 from sympy import symbols, integrate
-from InternalForcesAE2111 import momentfuncyz, torquefunc
+from InternalForcesAE2111 import momentfuncyz, torquefunc, momentfuncxz
 import matplotlib.pyplot as plt
 
-q_design_op = int(input("Select design 1, 2 or 3"))
+# q_design_op = int(input("Select design 1, 2 or 3"))
+q_design_op = 1
 if q_design_op == 1 :
     a_ratio = 0.0841
     p_ratio = 0.127
     d_ratio = 0.01
     t_ratio = 1
     k_ratio = 0.5
-    spanwisesplit = 0.5#Ratio of span
-    nr_of_stringers = 8
+    spanwisesplit = 0.9#Ratio of span
+    nr_of_stringers = 30
     #Change the numbers here
 elif q_design_op == 2:
     a_ratio = 0.0841
@@ -111,7 +112,7 @@ def Icalculation(z):
         I_xx_Stringer = 0
         I_yy_Stringer = 0
         I_xy_Stringer = 0
-        for i in range(Divider):
+        for i in range(int(Divider)):
             distbetween = r / Divider
             distfromleftwall = (i + 1) * distbetween
             hstringer = C_t_z - distfromleftwall * np.tan(theta)
@@ -165,7 +166,7 @@ def Icalculation(z):
         I_xx_Stringer = 0
         I_yy_Stringer = 0
         I_xy_Stringer = 0
-        for i in range(DividerA1):
+        for i in range(int(DividerA1)):
             distbetween = k / DividerA1
             distfromleftwall = (i + 1) * distbetween
             hstringer = C_t_z - distfromleftwall * np.tan(theta)
@@ -175,7 +176,7 @@ def Icalculation(z):
             I_xx_Stringer = I_xx_Stringer + A_stringer * hstringer ** 2
             I_yy_Stringer = I_yy_Stringer + A_stringer * 2 * (C_t_x - distfromleftwall) ** 2
             I_xy_Stringer = I_xy_Stringer + A_stringer * hstringer * (-C_t_x + distfromleftwall)
-        for i in range(DividerA2):
+        for i in range(int(DividerA2)):
             distbetween = (r - k) / DividerA2
             distfromleftwall = (i + 1) * distbetween
             hstringer = C_t_z - distfromleftwall * np.tan(theta)
@@ -345,7 +346,7 @@ for i in range(len(z_values)):
 
 for i in range(len(z_values)):
     deflect_values = np.append(deflect_values, deflect_function(z_values[i]))
-print(deflect_values)
+# print(deflect_values)
 
 for i in range(len(z_values)):
     jvalues = np.append(jvalues, Jcalculation(z_values[i])[0])
@@ -354,8 +355,8 @@ for i in range(len(z_values)):
 
 for i in range(len(z_values)):
     twist_values = np.append(twist_values, twist_function(z_values[i]))
-print(twist_values)
-fig, axs = plt.subplots(1, 2, figsize=(10, 5), layout='constrained')
+# print(twist_values)
+# fig, axs = plt.subplots(1, 2, figsize=(10, 5), layout='constrained')
 
 """
 #axs.flat[0].plot(z_values, angle_values)
@@ -369,13 +370,13 @@ axs.flat[1].plot(z_values, twist_values)
 axs.flat[1].set_title('Twist')
 axs.flat[1].set(ylabel=r'Wing Twist [rad]', xlabel='Spanwise Location [m]')
 
-"""axs.flat[0].plot(z_values, momentofinertia)
+axs.flat[0].plot(z_values, momentofinertia)
 axs.flat[0].set_title('Moment of Inertia')
 axs.flat[0].set(ylabel=r'Moment of Inertia [$m^{4}$]', xlabel='Spanwise Location [m]')
 
 axs.flat[1].plot(z_values, torsionalstiffness)
 axs.flat[1].set_title('Torsional Stiffness')
-axs.flat[1].set(ylabel=r'Torsional Stiffness [$m^{4}$]', xlabel='Spanwise Location [m]')"""
+axs.flat[1].set(ylabel=r'Torsional Stiffness [$m^{4}$]', xlabel='Spanwise Location [m]')
 
 plt.show()
 """
@@ -387,19 +388,18 @@ plt.show()
 def Stress_Analysis(z, point):
     return (((momentfuncyz(z) * Icalculation(z)[2] - momentfuncxz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][1] + (momentfuncxz(z) * Icalculation(z)[1] - momentfuncyz(z) * Icalculation(z)[3]) * Icalculation(z)[4][int(point)][0]) / (Icalculation(z)[1] * Icalculation(z)[2] - Icalculation(z)[3] ** 2))
 
+
 Point1Stress = np.empty((0, 1))
+Point2Stress = np.empty((0, 1))
+Point3Stress = np.empty((0, 1))
+Point4Stress = np.empty((0, 1))
+
+
 for i in range(len(z_values)):
     Point1Stress = np.append(Point1Stress, Stress_Analysis(z_values[i], 0))
-Point2Stress = np.empty((0, 1))
-for i in range(len(z_values)):
     Point2Stress = np.append(Point2Stress, Stress_Analysis(z_values[i], 1))
-Point3Stress = np.empty((0, 1))
-for i in range(len(z_values)):
     Point3Stress = np.append(Point3Stress, Stress_Analysis(z_values[i], 2))
-Point4Stress = np.empty((0, 1))
-for i in range(len(z_values)):
     Point4Stress = np.append(Point4Stress, Stress_Analysis(z_values[i], 3))
-
 
 
 def principal_axis(z):
@@ -490,6 +490,13 @@ for z in range(len(z_values)):
         margin_of_safety.append(margin)
     else:
         margin_of_safety.append(10)
-print(margin_of_safety[0])
+# print(margin_of_safety[0])
 #plt.plot(z_values, margin_of_safety)
 #plt.show()
+
+
+# plt.plot(z_values, Point3Stress)
+# plt.show()
+
+# print(Point1Stress)
+# print(Point4Stress)
