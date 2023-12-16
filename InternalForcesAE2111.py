@@ -63,7 +63,7 @@ def momentfuncxz(z):
     new_z = [j for j in z_values if j >= z]
     new_shear = shearxz_values[ind:]
     moment = - sp.integrate.simps(new_shear, new_z) - M_eng*(1 - np.heaviside(z - eng_loc, 1))
-    return moment   
+    return moment
 
 
 def torquefunc(z): #Fix moment of the thrust
@@ -129,57 +129,57 @@ for i in range(len(z_values)):
     momentxz_values = np.append(momentxz_values, momentfuncxz(z_values[i]))
     momentxy_values = np.append(momentxy_values, torquefunc(z_values[i]))
 
-"""
-fig, axs = plt.subplots(2, 3, figsize=(13, 5), layout='constrained')
-# axs[0][2].set_visible(False)
 
 
-
-axs.flat[2].plot(z_values, norm_values, color='red')
-axs.flat[2].set_title("Internal Normal Force")
-axs.flat[2].set(ylabel='Internal Normal Load [N]')
-axs.flat[2].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-# axs.flat[2].axhline(0, color='black')
-
-
-axs.flat[0].plot(z_values, shearyz_values, color='blue')
-axs.flat[0].set_title('Internal Shear yz-plane')
-axs.flat[0].set(ylabel='Internal Shear [N]')
-axs.flat[0].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-# axs.flat[0].axhline(0, color='black')
-
-
-axs.flat[1].plot(z_values, shearxz_values, color='blue')
-axs.flat[1].set_title('Internal Shear xz-plane')
-# axs.flat[1].axhline(0, color='black')
-axs.flat[1].set(ylabel='Internal Shear [N]')
-# axs.flat[1].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-
-
-axs.flat[3].plot(z_values, momentyz_values, color='orange')
-axs.flat[3].set_title('Internal Moment yz-plane')
-axs.flat[3].set(ylabel='Internal Moment [Nm]')
-axs.flat[3].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-# axs.flat[3].axhline(0, color='black')
-
-
-axs.flat[4].plot(z_values, momentxz_values, color='orange')
-axs.flat[4].set_title('Internal Moment xz-plane')
-axs.flat[4].set(ylabel='Internal Moment [Nm]')
-axs.flat[4].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-# axs.flat[4].axhline(0, color='black')
-
-
-axs.flat[5].plot(z_values, momentxy_values, color='green')
-axs.flat[5].set_title('Internal Torque')
-axs.flat[5].set(ylabel='Internal Moment [Nm]')
-# axs.flat[5].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
-# axs.flat[5].axhline(0, color='black')
-
-
-for ax in axs.flat:
-    ax.set(xlabel='Spanwise Location [m]')
-    # ax.label_outer()
-
-plt.show()
-"""
+# fig, axs = plt.subplots(2, 3, figsize=(13, 5), layout='constrained')
+# # axs[0][2].set_visible(False)
+#
+#
+#
+# axs.flat[2].plot(z_values, norm_values, color='red')
+# axs.flat[2].set_title("Internal Normal Force")
+# axs.flat[2].set(ylabel='Internal Normal Load [N]')
+# axs.flat[2].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+# # axs.flat[2].axhline(0, color='black')
+#
+#
+# axs.flat[0].plot(z_values, shearyz_values, color='blue')
+# axs.flat[0].set_title('Internal Shear yz-plane')
+# axs.flat[0].set(ylabel='Internal Shear [N]')
+# axs.flat[0].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+# # axs.flat[0].axhline(0, color='black')
+#
+#
+# axs.flat[1].plot(z_values, shearxz_values, color='blue')
+# axs.flat[1].set_title('Internal Shear xz-plane')
+# # axs.flat[1].axhline(0, color='black')
+# axs.flat[1].set(ylabel='Internal Shear [N]')
+# # axs.flat[1].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+#
+#
+# axs.flat[3].plot(z_values, momentyz_values, color='orange')
+# axs.flat[3].set_title('Internal Moment yz-plane')
+# axs.flat[3].set(ylabel='Internal Moment [Nm]')
+# axs.flat[3].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+# # axs.flat[3].axhline(0, color='black')
+#
+#
+# axs.flat[4].plot(z_values, momentxz_values, color='orange')
+# axs.flat[4].set_title('Internal Moment xz-plane')
+# axs.flat[4].set(ylabel='Internal Moment [Nm]')
+# axs.flat[4].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+# # axs.flat[4].axhline(0, color='black')
+#
+#
+# axs.flat[5].plot(z_values, momentxy_values, color='green')
+# axs.flat[5].set_title('Internal Torque')
+# axs.flat[5].set(ylabel='Internal Moment [Nm]')
+# # axs.flat[5].ticklabel_format(style='sci', axis='y', scilimits=(6,6))
+# # axs.flat[5].axhline(0, color='black')
+#
+#
+# for ax in axs.flat:
+#     ax.set(xlabel='Spanwise Location [m]')
+#     # ax.label_outer()
+#
+# plt.show()
