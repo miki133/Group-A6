@@ -1,0 +1,29 @@
+import DeflectionComputation
+from StressComputation import failure_test
+# from DeflectionComputation import t_ratio
+# from InternalForcesAE2111 import b, z_values
+
+
+rho = 2700
+
+# def Weight_func():
+#     total_vol = 0
+#     for i in range(len(z_values)):
+#         print(area_lst[i][4], geometry_lst[i][7])
+#         total_vol += area_lst[i][4]*geometry_lst[i][7]
+#     return total_vol*rho
+
+
+N_str = 4
+N_rib = 2
+web_end = 0.5
+
+
+Failure = True
+while Failure:
+    result = failure_test()
+    print(result, DeflectionComputation.t_ratio)
+    global t_ratio
+    DeflectionComputation.t_ratio += 0.1
+
+
