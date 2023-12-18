@@ -530,7 +530,7 @@ Point4Stress = abs(Point4Stress)
 
 margin_of_safety = []
 for z in range(len(z_values)):
-    margin = 310e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
+    margin = 276e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
     if margin < 10:
         margin_of_safety.append(margin)
     else:
@@ -539,6 +539,6 @@ for z in range(len(z_values)):
 
 
 # print(margin_of_safety[0])
-#plt.plot(z_values, margin_of_safety)
-#plt.show()
+plt.plot(z_values, margin_of_safety)
+plt.show()
 
