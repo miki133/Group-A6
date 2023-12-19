@@ -7,11 +7,6 @@ import matplotlib.pyplot as plt
 np.seterr(divide='ignore', invalid='ignore')
 b = 48.82
 
-nr_of_stringers = 10
-nr_of_ribs = 10
-spanwisesplit = 0.5
-t_ratio = 1
-
 q_design_op = 1
 if q_design_op == 1:
     a_ratio = 0.0841
@@ -31,7 +26,7 @@ elif q_design_op == 2:
     p_ratio = 0.0841
     d_ratio = 0
     # t_ratio = 1.2
-    k_ratio = 0
+    k_ratio = 0.5
     # spanwisesplit = 0#Ratio of span
     # nr_of_stringers = 20
     # nr_of_ribs = 22
@@ -44,7 +39,7 @@ elif q_design_op == 3:
     d_ratio = 0.01
     # t_ratio = 1.4
     k_ratio = 0.5
-    spanwisesplit = 0.5#Ratio of span
+    # spanwisesplit = 0.5#Ratio of span
     # nr_of_stringers = 4
     # nr_of_ribs = 22
     A_str = 2*10**(-3)
@@ -52,7 +47,7 @@ elif q_design_op == 3:
     #Change the numbers here
 
 
-def geometry(z):
+def geometry(z, t_ratio, spanwisesplit):
     c = (8.487 - 0.233 * z)
     r = 0.5 * c
     b_1 = c * p_ratio
@@ -64,7 +59,7 @@ def geometry(z):
     theta = np.arctan(d / r)
     beta = np.arctan(e / r)
 
-    if q_design_op == 2 or z > (b / 2)*spanwisesplit:
+    if z > (b / 2)*spanwisesplit:
         b_3 = 0
     else:
         b_3 = b_2 + (r - k) * np.tan(beta) + (r - k) * np.tan(theta)
@@ -74,35 +69,37 @@ def geometry(z):
     return r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2
 
 
-def enclosed_area(z):
+def enclosed_area(z, geometry_lst, nr_of_stringers):
     ind = int(z*10)
-    r, a, d, e = geometry_lst[ind][0], geometry_lst[ind][2], geometry_lst[ind][5], geometry_lst[ind][6]
-    A_1 = a*r
+    # r, a, d, e = geometry_lst[ind][0], geometry_lst[ind][2], geometry_lst[ind][5], geometry_lst[ind][6]
+    r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2 = geometry_lst[ind]
+
+    A_1 = b_1*r
     A_2 = 1/2*r*d
     A_3 = 1/2*r*e
     A = A_3 + A_2 + A_1
-    return A_1, A_2, A_3, A
+    A_cross = (b_1 + b_2 + b_3 + h_1 + h_2) * t + nr_of_stringers * A_str
+    return A_1, A_2, A_3, A, A_cross
 
 
-def cross_sec_area(z):
+def cross_sec_area(z, geometry_lst, nr_of_stringers):
     ind = int(z * 10)
     r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2 = geometry_lst[ind]
     A_cross = (b_1 + b_2 + b_3 + h_1 + h_2)*t + nr_of_stringers*A_str
     return A_cross
 
 
-def Icalculation(z):
-    ind = int(z*10)
-    [r, p, a, l, k, d, e, t, theta, beta, h_1, h_2] = geometry_lst[ind]
+def Icalculation(z, geometry_lst, area_lst, nr_of_stringers, spanwisesplit):
+    ind = (z * 10).astype(int)
+    [r, p, a, l, k, d, e, t, theta, beta, h_1, h_2] = geometry_lst[ind].T
 
     G = 26e9
     E = 68.9e9
 
-    # A_1 = a * r
-    # A_2 = 0.5 * r * d
-    # A_3 = 0.5 * r * e
+
     A_stringer = 2 * 10**-3
-    A_1, A_2, A_3, A_tot = area_lst[ind][0:4]
+    # A_1, A_2, A_3, A_tot = area_lst[ind][0:4]
+    A_1, A_2, A_3, A_tot, A_cross = area_lst[ind].T
 
     # Centroids
     C_1_x = 0.5 * r
@@ -238,7 +235,7 @@ def Icalculation(z):
 
 
 
-def Jcalculation(z):
+def Jcalculation(z, geometry_lst, spanwisesplit):
     ind = int(z*10)
     [r, p, a, l, k, d, e, t, theta, beta, h_1, h_2] = geometry_lst[ind]
     G = 26e9
@@ -285,7 +282,7 @@ def Jcalculation(z):
 # phi prime
 #phi = T / (G * J)
 
-def angle_function(z):
+def angle_function(z, ivalues):
     ind = int(z * 10)
     new_z = [j for j in z_values if j <= z]
     new_moment = momentyz_values[:ind+1]
@@ -294,14 +291,14 @@ def angle_function(z):
     return scipy.integrate.simps(EI_values, new_z)
 
 
-def deflect_function(z):
+def deflect_function(z, angle_values):
     ind = int(z * 10)
     new_z = [j for j in z_values if j <= z]
     new_anglevalues = angle_values[:ind + 1]
     return scipy.integrate.simps(new_anglevalues, new_z)
 
 
-def twist_function(z):
+def twist_function(z, jvalues):
     ind = int(z * 10)
     new_z = [j for j in z_values if j <= z]
     new_torque = torque_values[:ind + 1]
@@ -310,7 +307,7 @@ def twist_function(z):
     return scipy.integrate.simps(GJ_values, new_z)
 
 # Define the variable
-z = symbols('z')
+# z = symbols('z')
 
 #Momentfuncyz
 # Compute the indefinite integral
@@ -318,49 +315,49 @@ z = symbols('z')
 # deflection = integrate(indefinite_integral, z)
 # print(dblintegral)
 
-geometry_lst = []
-area_lst = []
-for z in z_values:
-    r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2 = geometry(z)
-    geometry_lst.append([r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2])
-    A1, A2, A3, A_tot = enclosed_area(z)
-    A_cross = cross_sec_area(z)
-    area_lst.append([A1, A2, A3, A_tot, A_cross])
-
-
-ivalues, Ixx_lst, Iyy_lst, Ixy_lst = [], [], [], []
-stress_point_lst = []
-
-jvalues = []
-torsionalstiffness = []
-# angle_values = np.empty((0, 1))
-# deflect_values = np.empty((0, 1))
-# twist_values = np.empty((0, 1))
-
-
-for z in z_values:
-    ivalue, Ixx, Iyy, Ixy, Stress_points = Icalculation(z)
-
-    # Append values to respective lists
-    ivalues.append(ivalue)
-    Ixx_lst.append(Ixx)
-    Iyy_lst.append(Iyy)
-    Ixy_lst.append(Ixy)
-    stress_point_lst.append(Stress_points)
-
-    jvalue, torsionalstiffness_value = Jcalculation(z)
-
-    # Append values to respective lists
-    jvalues.append(jvalue)
-    torsionalstiffness.append(torsionalstiffness_value)
-
-# Convert lists to NumPy arrays if needed
-ivalues = np.array(ivalues)
-Ixx_lst = np.array(Ixx_lst)
-Iyy_lst = np.array(Iyy_lst)
-Ixy_lst = np.array(Ixy_lst)
-jvalues = np.array(jvalues)
-torsionalstiffness = np.array(torsionalstiffness)
+# geometry_lst = []
+# area_lst = []
+# for z in z_values:
+#     r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2 = geometry(z)
+#     geometry_lst.append([r, b_1, b_2, b_3, k, d, e, t, theta, beta, h_1, h_2])
+#     A1, A2, A3, A_tot = enclosed_area(z)
+#     A_cross = cross_sec_area(z)
+#     area_lst.append([A1, A2, A3, A_tot, A_cross])
+#
+#
+# ivalues, Ixx_lst, Iyy_lst, Ixy_lst = [], [], [], []
+# stress_point_lst = []
+#
+# jvalues = []
+# torsionalstiffness = []
+# # angle_values = np.empty((0, 1))
+# # deflect_values = np.empty((0, 1))
+# # twist_values = np.empty((0, 1))
+#
+#
+# for z in z_values:
+#     ivalue, Ixx, Iyy, Ixy, Stress_points = Icalculation(z)
+#
+#     # Append values to respective lists
+#     ivalues.append(ivalue)
+#     Ixx_lst.append(Ixx)
+#     Iyy_lst.append(Iyy)
+#     Ixy_lst.append(Ixy)
+#     stress_point_lst.append(Stress_points)
+#
+#     jvalue, torsionalstiffness_value = Jcalculation(z)
+#
+#     # Append values to respective lists
+#     jvalues.append(jvalue)
+#     torsionalstiffness.append(torsionalstiffness_value)
+#
+# # Convert lists to NumPy arrays if needed
+# ivalues = np.array(ivalues)
+# Ixx_lst = np.array(Ixx_lst)
+# Iyy_lst = np.array(Iyy_lst)
+# Ixy_lst = np.array(Ixy_lst)
+# jvalues = np.array(jvalues)
+# torsionalstiffness = np.array(torsionalstiffness)
 
 
 
@@ -396,7 +393,7 @@ plt.show()
 """
 
 
-def Stress_Analysis(z, point):
+def Stress_Analysis(z, point, stress_point_lst, Ixx_lst, Iyy_lst, Ixy_lst):
     ind = int(z * 10)  # Calculate index directly without np.where
     stress_point = stress_point_lst[ind][int(point)]
     moment_yz = momentyz_values[ind]
@@ -411,18 +408,18 @@ def Stress_Analysis(z, point):
 
     return stress
 
-num_points = 4  # Number of stress points
-stress_arrays = [[] for _ in range(num_points)]
-
-for i in range(len(z_values)):
-    stresses = [Stress_Analysis(z_values[i], point) for point in range(num_points)]
-    for idx, stress in enumerate(stresses):
-        stress_arrays[idx].append(stress)
-
-Point1Stress = np.array(stress_arrays[0])
-Point2Stress = np.array(stress_arrays[1])
-Point3Stress = np.array(stress_arrays[2])
-Point4Stress = np.array(stress_arrays[3])
+# num_points = 4  # Number of stress points
+# stress_arrays = [[] for _ in range(num_points)]
+#
+# for i in range(len(z_values)):
+#     stresses = [Stress_Analysis(z_values[i], point) for point in range(num_points)]
+#     for idx, stress in enumerate(stresses):
+#         stress_arrays[idx].append(stress)
+#
+# Point1Stress = np.array(stress_arrays[0])
+# Point2Stress = np.array(stress_arrays[1])
+# Point3Stress = np.array(stress_arrays[2])
+# Point4Stress = np.array(stress_arrays[3])
 
 ########################################################################
 
@@ -523,22 +520,21 @@ Point4Stress = np.array(stress_arrays[3])
 
 
 
-Point1Stress = abs(Point1Stress)
-Point2Stress = abs(Point2Stress)
-Point3Stress = abs(Point3Stress)
-Point4Stress = abs(Point4Stress)
+# Point1Stress = abs(Point1Stress)
+# Point2Stress = abs(Point2Stress)
+# Point3Stress = abs(Point3Stress)
+# Point4Stress = abs(Point4Stress)
 
-margin_of_safety = []
-for z in range(len(z_values)):
-    margin = 276e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
-    if margin < 10:
-        margin_of_safety.append(margin)
-    else:
-        margin_of_safety.append(10)
+# margin_of_safety = []
+# for z in range(len(z_values)):
+#     margin = 310e6 / max(Point1Stress[z], Point2Stress[z], Point3Stress[z], Point4Stress[z])
+#     if margin < 10:
+#         margin_of_safety.append(margin)
+#     else:
+#         margin_of_safety.append(10)
 
 
 
 # print(margin_of_safety[0])
-plt.plot(z_values, margin_of_safety)
-plt.show()
-
+#plt.plot(z_values, margin_of_safety)
+#plt.show()
